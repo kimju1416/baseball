@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>야구 수업 DJ 턴테이블</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e14;
+  --surface: #111820;
+  --surface2: #18232f;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8edf5;
+  --muted: #6b7f96;
+  --dim: #3d5068;
+
+  --green: #22c55e;
+  --green-dim: #14532d;
+  --orange: #f97316;
+  --orange-dim: #7c2d12;
+  --purple: #a78bfa;
+  --purple-dim: #3b1e6e;
+  --red: #f87171;
+  --red-dim: #7f1d1d;
+  --yellow: #fbbf24;
+
+  --bar-h: 104px;
+  --ctrl-h: 50px;
+  --safe: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
+.now-title-row {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: .1em;
+  color: var(--yellow);
+  padding-bottom: 6px;
+}
+/* ── NOW PLAYING BAR ── */
+.now-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--bar-h);
+  background: #060a10;
+  border-bottom: 1px solid var(--border2);
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 14px;
+  gap: 5px;
+}
+.now-top {
+  display: flex; align-items: center; gap: 9px;
+}
+.now-led {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--dim); flex-shrink: 0;
+  transition: background .2s, box-shadow .2s;
+}
+.now-led.on {
+  background: var(--green);
+  box-shadow: 0 0 7px var(--green);
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+#nowPlaying {
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px; font-weight: 400; letter-spacing: .04em;
+  color: var(--text);
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.now-time {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px; color: var(--muted); flex-shrink: 0;
+}
+.progress-track {
+  height: 2px; background: var(--surface2); border-radius: 2px;
+}
+.progress-fill {
+  height: 100%; border-radius: 2px;
+  background: var(--green);
+  width: 0%; transition: width .3s linear;
+}
+.now-sub {
+  font-size: 11px; color: var(--muted); letter-spacing: .02em;
+}
+
+/* ── CTRL BAR ── */
+.ctrl-bar {
+  position: fixed;
+  top: var(--bar-h); left: 0; right: 0; z-index: 99;
+  height: var(--ctrl-h);
+  background: #0d1520;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 7px; padding: 0 10px;
+}
+.cbtn {
+  border: none; cursor: pointer;
+  border-radius: 7px; padding: 0 12px; height: 34px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px; font-weight: 500;
+  letter-spacing: .02em;
+  color: #fff; flex-shrink: 0;
+  touch-action: manipulation;
+  transition: transform .08s, filter .1s;
+  white-space: nowrap;
+}
+.cbtn:active { transform: scale(.93); }
+.cbtn-stop { background: #b91c1c; }
+.cbtn-fade { background: #6d28d9; }
+.cbtn-reset { background: var(--surface2); color: var(--muted); font-size: 11px; }
+
+.vol-row {
+  flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0;
+}
+.vol-icon { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+input[type=range].vol-slider {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 3px; border-radius: 3px;
+  background: var(--surface2); outline: none; min-width: 0;
+}
+input[type=range].vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--yellow);
+}
+.vol-pct { font-size: 11px; color: var(--muted); flex-shrink: 0; min-width: 28px; text-align: right; }
+
+/* ── CONTENT ── */
+.content {
+  padding-top: calc(var(--bar-h) + var(--ctrl-h) + 12px);
+  padding-bottom: calc(72px + var(--safe));
+  padding-left: 10px; padding-right: 10px;
+}
+
+/* ── SECTION HEADER ── */
+.sec-head {
+  display: flex; align-items: center; gap: 8px;
+  margin: 20px 0 9px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+}
+.sec-tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  padding: 2px 8px; border-radius: 4px;
+  background: var(--surface2); color: var(--muted);
+}
+.sec-tag.green  { background: var(--green-dim);  color: var(--green); }
+.sec-tag.orange { background: var(--orange-dim); color: var(--orange); }
+.sec-tag.purple { background: var(--purple-dim); color: var(--purple); }
+.sec-tag.red    { background: var(--red-dim);    color: var(--red); }
+.sec-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px; font-weight: 400; letter-spacing: .05em; color: var(--text);
+}
+.sec-count { font-size: 11px; color: var(--dim); margin-left: auto; }
+
+/* ── PADS ── */
+.grid { display: grid; gap: 7px; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+
+.pad {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer; touch-action: manipulation;
+  padding: 13px 8px 11px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  min-height: 72px;
+  transition: transform .08s, border-color .15s, background .15s;
+  text-align: center;
+}
+.pad:active { transform: scale(.93); }
+
+.pad-num {
+  position: absolute; top: 5px; left: 7px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px; color: var(--dim);
+}
+.pad-icon { font-size: 20px; line-height: 1; }
+.pad-label {
+  font-size: 12px; font-weight: 500; color: var(--text);
+  letter-spacing: -.01em; line-height: 1.35;
+}
+.pad-badge {
+  display: none; position: absolute; bottom: 5px; right: 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px; color: var(--dim);
+  background: rgba(0,0,0,.5); border-radius: 4px; padding: 1px 4px;
+}
+.pad-badge.show { display: block; }
+
+/* 카테고리별 테두리 색 */
+.pad.player  { border-color: rgba(34,197,94,.15); }
+.pad.event   { border-color: rgba(249,115,22,.15); }
+.pad.ops     { border-color: rgba(167,139,250,.15); }
+.pad.team    { border-color: rgba(248,113,113,.15); }
+
+/* 활성 상태 */
+.pad.player.active  { border-color: var(--green);  background: rgba(34,197,94,.12);  box-shadow: inset 0 0 0 1px var(--green); }
+.pad.event.active   { border-color: var(--orange); background: rgba(249,115,22,.12); box-shadow: inset 0 0 0 1px var(--orange); }
+.pad.ops.active     { border-color: var(--purple); background: rgba(167,139,250,.12);box-shadow: inset 0 0 0 1px var(--purple); }
+.pad.team.active    { border-color: var(--red);    background: rgba(248,113,113,.12);box-shadow: inset 0 0 0 1px var(--red); }
+
+/* 리플 */
+.ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  transform: scale(0); animation: rip .38s linear;
+  pointer-events: none;
+}
+@keyframes rip { to { transform: scale(4); opacity: 0; } }
+
+/* ── 음량 패널 ── */
+.vol-panel {
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.vol-panel-hd {
+  padding: 12px 14px 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.vol-panel-title { font-size: 13px; font-weight: 500; color: var(--muted); }
+.vol-reset-btn {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px; color: var(--muted);
+  background: var(--surface2); border: none;
+  border-radius: 6px; padding: 5px 10px; cursor: pointer;
+  touch-action: manipulation;
+}
+.vol-items { padding: 10px 14px 14px; display: grid; gap: 10px; }
+.vol-group-label {
+  font-size: 11px; color: var(--dim);
+  letter-spacing: .06em; padding-top: 6px;
+}
+.vol-item { display: grid; gap: 4px; }
+.vol-item-lbl {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted);
+}
+.vol-item-lbl span:last-child { color: var(--yellow); font-weight: 500; }
+input[type=range].item-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 3px; border-radius: 3px;
+  background: var(--surface2); outline: none;
+}
+input[type=range].item-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--yellow);
+}
+
+/* ── 안내 ── */
+details { margin-top: 12px; }
+details summary {
+  font-size: 12px; color: var(--muted);
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  cursor: pointer; list-style: none;
+}
+details summary::before { content: '▶  '; font-size: 9px; }
+details[open] summary { border-radius: 10px 10px 0 0; border-bottom: none; }
+details[open] summary::before { content: '▼  '; }
+.hint-body {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: none; border-radius: 0 0 10px 10px;
+  padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.7;
+}
+.hint-body strong { color: var(--text); }
+.hint-body code {
+  font-size: 11px; color: #7dd3fc;
+  background: rgba(125,211,252,.07);
+  border-radius: 4px; padding: 1px 4px;
+}
+.safe-pad { height: calc(16px + var(--safe)); }
+</style>
+</head>
+<body>
+
+<div class="now-bar">
+  <div class="now-title-row">⚾ 야구 수업 DJ 턴테이블</div>
+  <div class="now-top">
+    <div class="now-led" id="nowLed"></div>
+    <div id="nowPlaying">대기 중</div>
+    <div class="now-time" id="nowTime"></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+  <div class="now-sub" id="nowSub">구단 응원송 저장 위치 없음</div>
+</div>
+
+<div class="ctrl-bar">
+  <button class="cbtn cbtn-stop" onclick="stopAll()">■ 정지</button>
+  <button class="cbtn cbtn-fade" onclick="fadeOut()">↓ 페이드</button>
+  <button class="cbtn cbtn-reset" onclick="resetTeamPositions()">위치초기화</button>
+  <div class="vol-row">
+    <span class="vol-icon">🔊</span>
+    <input class="vol-slider" type="range" min="0" max="1" step="0.01" value="0.8"
+      oninput="setMasterVol(this.value)">
+    <span class="vol-pct" id="masterPct">80%</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="sec-head">
+    <span class="sec-tag green">BATTER</span>
+    <span class="sec-label">타자 등장곡</span>
+    <span class="sec-count">9</span>
+  </div>
+  <div class="grid g3" id="playerGrid"></div>
+
+  <div class="sec-head">
+    <span class="sec-tag orange">EVENT</span>
+    <span class="sec-label">경기 효과음</span>
+    <span class="sec-count">4</span>
+  </div>
+  <div class="grid g2" id="eventGrid"></div>
+
+  <div class="sec-head">
+    <span class="sec-tag purple">OPS</span>
+    <span class="sec-label">운영 상황</span>
+    <span class="sec-count">3</span>
+  </div>
+  <div class="grid g3" id="opsGrid"></div>
+
+  <div class="sec-head">
+    <span class="sec-tag red">TEAM</span>
+    <span class="sec-label">KBO 구단 응원가</span>
+    <span class="sec-count">5</span>
+  </div>
+  <div class="grid g2" id="teamGrid"></div>
+
+  <div class="sec-head" style="margin-top:24px">
+    <span class="sec-tag">VOL</span>
+    <span class="sec-label" style="font-size:13px;color:var(--muted)">음원별 음량 보정</span>
+  </div>
+  <div class="vol-panel">
+    <div class="vol-panel-hd">
+      <span class="vol-panel-title">개별 음량 조절</span>
+      <button class="vol-reset-btn" onclick="resetSoundVols()">전체 초기화</button>
+    </div>
+    <div class="vol-items" id="volItems"></div>
+  </div>
+
+  <details>
+    <summary>파일 구성 · 사용 방법</summary>
+    <div class="hint-body">
+      <strong>동작 방식</strong><br>
+      구단 응원송은 버튼 눌렀을 때만 재생됩니다.<br>
+      응원송 재생 중 다른 음원 누르면 <strong>현재 위치 자동 저장</strong>,<br>
+      같은 구단 버튼 다시 누르면 저장된 위치부터 이어서 재생됩니다.<br><br>
+      <strong>폴더 구성</strong><br>
+      HTML 파일 옆에 <code>music/</code> 폴더를 두세요.<br><br>
+      <code>player1.mp3</code> ~ <code>player9.mp3</code><br>
+      <code>homerun.mp3</code> / <code>hit.mp3</code> / <code>strikeout.mp3</code> / <code>out.mp3</code><br>
+      <code>change.mp3</code> / <code>start.mp3</code> / <code>end.mp3</code><br>
+      <code>team_hanwha.mp3</code> / <code>team_kiwoom.mp3</code> / <code>team_lg.mp3</code><br>
+      <code>team_lotte.mp3</code> / <code>team_samsung.mp3</code>
+    </div>
+  </details>
+
+  <div class="safe-pad"></div>
+</div>
+
+<script>
+const PLAYERS=[
+  {key:'player1',label:'1번 타자',icon:'⚾',src:'music/player1.mp3'},
+  {key:'player2',label:'2번 타자',icon:'⚾',src:'music/player2.mp3'},
+  {key:'player3',label:'3번 타자',icon:'⚾',src:'music/player3.mp3'},
+  {key:'player4',label:'4번 타자',icon:'⚾',src:'music/player4.mp3'},
+  {key:'player5',label:'5번 타자',icon:'⚾',src:'music/player5.mp3'},
+  {key:'player6',label:'6번 타자',icon:'⚾',src:'music/player6.mp3'},
+  {key:'player7',label:'7번 타자',icon:'⚾',src:'music/player7.mp3'},
+  {key:'player8',label:'8번 타자',icon:'⚾',src:'music/player8.mp3'},
+  {key:'player9',label:'9번 타자',icon:'⚾',src:'music/player9.mp3'},
+];
+const EVENTS=[
+  {key:'homerun',label:'홈런',icon:'🔥',src:'music/homerun.mp3'},
+  {key:'hit',label:'안타',icon:'👏',src:'music/hit.mp3'},
+  {key:'strikeout',label:'삼진',icon:'⚡',src:'music/strikeout.mp3'},
+  {key:'out',label:'아웃',icon:'✋',src:'music/out.mp3'},
+];
+const OPS=[
+  {key:'change',label:'공수교대',icon:'🔁',src:'music/change.mp3'},
+  {key:'start',label:'경기 시작',icon:'🎺',src:'music/start.mp3'},
+  {key:'end',label:'경기 종료',icon:'🏁',src:'music/end.mp3'},
+];
+const TEAMS=[
+  {key:'team_hanwha',label:'한화 이글스',icon:'🦅',src:'music/team_hanwha.mp3'},
+  {key:'team_kiwoom',label:'키움 히어로즈',icon:'⚔️',src:'music/team_kiwoom.mp3'},
+  {key:'team_lg',label:'LG 트윈스',icon:'⚡',src:'music/team_lg.mp3'},
+  {key:'team_lotte',label:'롯데 자이언츠',icon:'🌊',src:'music/team_lotte.mp3'},
+  {key:'team_samsung',label:'삼성 라이온즈',icon:'🦁',src:'music/team_samsung.mp3'},
+];
+const ALL=[...PLAYERS,...EVENTS,...OPS,...TEAMS];
+const TEAM_SRCS=TEAMS.map(t=>t.src);
+
+let cur=null,curSrc=null,curName='',curIsTeam=false;
+let masterVol=.8,fadeTimer=null,progTimer=null;
+
+const teamPos={};
+TEAM_SRCS.forEach(s=>{ teamPos[s]=Number(localStorage.getItem('tp_'+s)||0); });
+
+function loadVols(){
+  const base={}; ALL.forEach(s=>base[s.key]=1);
+  try{ const sv=localStorage.getItem('bbv3'); return sv?{...base,...JSON.parse(sv)}:base; }catch{return base;}
+}
+let svols=loadVols();
+function saveVols(){ localStorage.setItem('bbv3',JSON.stringify(svols)); }
+
+function makePad(item,cls,isTeam){
+  const b=document.createElement('button');
+  b.className='pad '+cls; b.dataset.src=item.src; b.id='pad_'+item.key;
+  const numHtml=cls==='player'?`<span class="pad-num">${item.key.replace('player','')}</span>`:'';
+  const badgeHtml=isTeam?`<span class="pad-badge" id="badge_${item.key}"></span>`:'';
+  b.innerHTML=`${numHtml}<span class="pad-icon">${item.icon}</span><span class="pad-label">${item.label}</span>${badgeHtml}`;
+  b.addEventListener('click',e=>{
+    ripple(b,e);
+    isTeam?playTeam(item.label,item.src):playNormal(item.label,item.src);
+  });
+  return b;
+}
+function ripple(btn,e){
+  const r=document.createElement('span'); r.className='ripple';
+  const rc=btn.getBoundingClientRect(), sz=Math.max(rc.width,rc.height);
+  r.style.cssText=`width:${sz}px;height:${sz}px;left:${e.clientX-rc.left-sz/2}px;top:${e.clientY-rc.top-sz/2}px`;
+  btn.appendChild(r); setTimeout(()=>r.remove(),500);
+}
+
+function renderPads(){
+  PLAYERS.forEach(p=>document.getElementById('playerGrid').appendChild(makePad(p,'player',false)));
+  EVENTS.forEach(e=>document.getElementById('eventGrid').appendChild(makePad(e,'event',false)));
+  OPS.forEach(o=>document.getElementById('opsGrid').appendChild(makePad(o,'ops',false)));
+  TEAMS.forEach(t=>document.getElementById('teamGrid').appendChild(makePad(t,'team',true)));
+}
+
+function renderVolItems(){
+  const box=document.getElementById('volItems'); box.innerHTML='';
+  const groups=[
+    {label:'BATTER',items:PLAYERS},
+    {label:'EVENT',items:EVENTS},
+    {label:'OPS',items:OPS},
+    {label:'TEAM',items:TEAMS},
+  ];
+  groups.forEach(g=>{
+    const h=document.createElement('div'); h.className='vol-group-label'; h.textContent=g.label;
+    box.appendChild(h);
+    g.items.forEach(item=>{
+      const d=document.createElement('div'); d.className='vol-item';
+      d.innerHTML=`<div class="vol-item-lbl"><span>${item.label}</span><span id="vt_${item.key}">${Math.round(svols[item.key]*100)}%</span></div>
+      <input type="range" class="item-slider" min="0.3" max="1.5" step="0.01" value="${svols[item.key]}"
+        oninput="setSoundVol('${item.key}',this.value)">`;
+      box.appendChild(d);
+    });
+  });
+}
+
+function setSoundVol(key,v){
+  svols[key]=Number(v);
+  const el=document.getElementById('vt_'+key); if(el)el.textContent=Math.round(svols[key]*100)+'%';
+  saveVols(); applyVol();
+}
+function resetSoundVols(){ ALL.forEach(s=>svols[s.key]=1); saveVols(); renderVolItems(); applyVol(); }
+
+function setMasterVol(v){
+  masterVol=Number(v); document.getElementById('masterPct').textContent=Math.round(masterVol*100)+'%'; applyVol();
+}
+function applyVol(){
+  if(!cur||!curSrc)return;
+  const item=ALL.find(s=>s.src===curSrc);
+  const sv=item?(svols[item.key]??1):1;
+  cur.volume=Math.min(1,masterVol*sv);
+}
+
+function setActive(src){
+  document.querySelectorAll('.pad').forEach(b=>b.classList.remove('active'));
+  if(src){ const b=document.querySelector(`.pad[data-src="${src}"]`); if(b)b.classList.add('active'); }
+  document.getElementById('nowLed').classList.toggle('on',!!src);
+}
+
+function updateBadges(){
+  TEAMS.forEach(t=>{
+    const el=document.getElementById('badge_'+t.key); if(!el)return;
+    const p=teamPos[t.src]||0;
+    if(p>2){ el.textContent='▶'+fmt(p); el.classList.add('show'); }
+    else el.classList.remove('show');
+  });
+}
+
+function fmt(sec){
+  sec=Math.floor(sec||0);
+  return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+}
+
+function updateSub(){
+  if(cur&&curIsTeam){ document.getElementById('nowSub').textContent='▶ '+curName+' · '+fmt(cur.currentTime); return; }
+  const parts=TEAMS.map(t=>{ const p=teamPos[t.src]||0; return p>2?t.label.split(' ')[0]+' '+fmt(p):null; }).filter(Boolean);
+  document.getElementById('nowSub').textContent=parts.length?'저장: '+parts.join(' · '):'구단 응원송 저장 위치 없음';
+}
+
+function startProg(){
+  clearInterval(progTimer);
+  progTimer=setInterval(()=>{
+    if(!cur){ document.getElementById('progFill').style.width='0%'; return; }
+    const d=cur.duration,c=cur.currentTime;
+    if(d&&!isNaN(d)) document.getElementById('progFill').style.width=(c/d*100)+'%';
+    document.getElementById('nowTime').textContent=fmt(c)+(d&&!isNaN(d)?' / '+fmt(d):'');
+    updateSub(); updateBadges();
+  },300);
+}
+
+function savePos(){
+  if(cur&&curSrc&&curIsTeam&&!isNaN(cur.currentTime)){
+    teamPos[curSrc]=cur.currentTime;
+    localStorage.setItem('tp_'+curSrc,String(cur.currentTime));
+  }
+}
+
+function playNormal(name,src){ playAudio(name,src,false); }
+function playTeam(name,src){ playAudio(name,src,true); }
+
+function playAudio(name,src,isTeam){
+  clearInterval(fadeTimer); savePos();
+  if(cur){ cur.pause(); cur.currentTime=0; }
+  cur=new Audio(src); curSrc=src; curName=name; curIsTeam=isTeam;
+  applyVol();
+  document.getElementById('nowPlaying').textContent=isTeam?'LIVE · '+name:'▶  '+name;
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('nowTime').textContent='';
+  setActive(src);
+  cur.addEventListener('loadedmetadata',()=>{
+    if(isTeam){
+      const sv=teamPos[src]||0;
+      if(sv>2&&sv<cur.duration-1){
+        cur.currentTime=sv;
+        document.getElementById('nowPlaying').textContent='↩ '+name+' ('+fmt(sv)+')';
+      }
+    }
+  });
+  cur.onended=()=>{
+    if(isTeam){ teamPos[src]=0; localStorage.setItem('tp_'+src,'0'); }
+    document.getElementById('nowPlaying').textContent='완료 · '+name;
+    document.getElementById('progFill').style.width='0%';
+    document.getElementById('nowTime').textContent='';
+    setActive(null); updateSub(); updateBadges();
+  };
+  cur.play().catch(()=>{
+    document.getElementById('nowPlaying').textContent='파일 없음 · '+src;
+    setActive(null);
+  });
+  startProg();
+}
+
+function stopAll(){
+  clearInterval(fadeTimer); savePos();
+  if(cur){ cur.pause(); cur.currentTime=0; }
+  cur=null; curSrc=null; curName=''; curIsTeam=false;
+  document.getElementById('nowPlaying').textContent='정지됨';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('nowTime').textContent='';
+  setActive(null); updateSub(); updateBadges();
+}
+
+function fadeOut(){
+  if(!cur)return; clearInterval(fadeTimer);
+  fadeTimer=setInterval(()=>{
+    if(!cur){ clearInterval(fadeTimer); return; }
+    if(cur.volume>.035){ cur.volume=Math.max(0,cur.volume-.035); }
+    else{ savePos(); cur.pause(); applyVol(); document.getElementById('nowPlaying').textContent='페이드 정지됨'; setActive(null); clearInterval(fadeTimer); }
+  },100);
+}
+
+function resetTeamPositions(){
+  savePos();
+  TEAM_SRCS.forEach(s=>{ teamPos[s]=0; localStorage.setItem('tp_'+s,'0'); });
+  if(cur&&curIsTeam) cur.currentTime=0;
+  document.getElementById('nowPlaying').textContent='위치 초기화됨';
+  updateSub(); updateBadges();
+}
+
+renderPads(); renderVolItems(); updateSub(); updateBadges();
+</script>
+</body>
+</html>
