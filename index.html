@@ -99,13 +99,17 @@ html, body {
   display: flex; align-items: center;
   cursor: pointer; touch-action: none;
 }
-.seek .progress-track { flex: 1; height: 5px; border-radius: 3px; }
+.seek .progress-track { flex: 1; height: 5px; border-radius: 3px; position: relative; }
+.seek-tick {
+  position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
+  background: rgba(255,255,255,.4); border-radius: 1px; pointer-events: none;
+}
 .seek .progress-fill { position: relative; border-radius: 3px; }
 .seek-thumb {
   position: absolute; right: -8px; top: 50%;
   width: 16px; height: 16px; margin-top: -8px; border-radius: 50%;
   background: #fff; box-shadow: 0 0 0 3px rgba(34,197,94,.35);
-  display: none;
+  display: none; z-index: 2;
 }
 .seek.on .seek-thumb { display: block; }
 .seek.dragging .progress-fill { transition: none; }
@@ -119,6 +123,7 @@ html, body {
 .seek-btn:disabled { opacity: .35; cursor: default; transform: none; }
 .now-sub {
   font-size: 11px; color: var(--muted); letter-spacing: .02em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── CTRL BAR ── */
@@ -397,7 +402,8 @@ details[open] summary::before { content: '▼  '; }
       구단 응원송은 버튼 눌렀을 때만 재생됩니다.<br>
       응원송 재생 중 다른 음원 누르면 <strong>현재 위치 자동 저장</strong>,<br>
       같은 구단 버튼 다시 누르면 저장된 위치부터 이어서 재생됩니다.<br>
-      위쪽 막대를 누르거나 끌면 그 위치로 가고, <strong>⏪ / ⏩</strong> 버튼으로 건너뜁니다 (타자 등장곡 10초, 나머지 30초).<br><br>
+      위쪽 막대를 누르거나 끌면 그 위치로 가고, 양옆 버튼으로 건너뜁니다.<br>
+      구단 응원가는 <strong>⏮ 이전 곡 / 다음 곡 ⏭</strong>, 타자 등장곡은 10초, 나머지는 30초씩.<br><br>
       <strong>폴더 구성</strong><br>
       HTML 파일 옆에 <code>music/</code> 폴더를 두세요.<br><br>
       <code>player1.mp3</code> ~ <code>player9.mp3</code><br>
@@ -448,6 +454,20 @@ const TEAMS=[
   {key:'team_nc',label:'NC 다이노스',icon:'🦖',src:'music/team_nc.mp3'},
   {key:'team_kt',label:'KT 위즈',icon:'✨',src:'music/team_kt.mp3'},
 ];
+// 구단 응원가 파일 안의 곡 시작 위치(초)와 제목 — 원본 유튜브 영상의 챕터·곡 목록에 무음 구간을 맞춰 잡음
+// 키움·LG는 원본을 못 찾아 곡 사이 무음 구간으로만 잡았다(제목 없음)
+const TEAM_SONGS={
+  team_hanwha:[[0,"영원히 최강한화"],[111.7,"우리의 사랑 한화이글스"],[204,"사랑한다 이글스"],[298.0,"열광"],[400.5,"보아라 기억하라"],[498.0,"우리들의 열정"]],
+  team_kiwoom:[[0,""],[98.4,""],[207.2,""],[287.0,""],[398.4,""],[528.2,""]],
+  team_lg:[[0,""],[59.7,""],[157.3,""],[187.0,""],[252.8,""],[307.0,""],[372.1,""],[405.3,""],[438.0,""],[544.2,""]],
+  team_lotte:[[0,"우리들의 빛나는 이 순간"],[126.3,"힘차게 외쳐보자"],[229.2,"승리를 외치자"],[336.3,"소리높여 외쳐보자"],[458.8,"영광의 순간"]],
+  team_samsung:[[0,"라인업송"],[114.6,"환희"],[167.9,"나의 라이온즈"],[261,"승리를 위해"],[337,"TOGETHER"],[408,"2020 승리하라 최강삼성"],[518,"승리의 그 이름"]],
+  team_kia:[[0,"라인업송"],[103,"기아 없이는 못살아"],[130,"두다"],[166,"영원하리라 KIA 타이거즈"],[253,"사랑한다 KIA"],[347.8,"WANTED (미치도록 사랑해요)"],[378.8,"광주의 함성"],[475.1,"최강 기아를 위해"]],
+  team_doosan:[[0,"PLAY BALL"],[72.3,"라인업 송"],[188.3,"ROCK TO THE DOOSAN"],[311.5,"가자! 두산베어스"],[399.8,"다 함께 허슬두"],[487.6,"두산 승리하리라"],[579.4,"서울두산 승리하리라"]],
+  team_ssg:[[0,"불꽃투혼 랜더스"],[149.3,"되고송"],[255,"라인업송"],[337.9,"Landing High Together"],[453,"랜더스여"],[539.5,"승리의 깃발"]],
+  team_nc:[[0,"다이노스 찬가"],[71.3,"다이노스여 일어나라!"],[169.2,"다이노스 다이겨쓰"],[267.4,"승리를 위하여"],[372.2,"승리의 깃발"],[468.9,"승리의 함성"]],
+  team_kt:[[0,"마법의 기적"],[110.2,"라인업송"],[217.5,"투혼가"],[305,"승리의 kt wiz"],[485.6,"kt wiz 승리하리라"],[517,"안타송"]],
+};
 const ALL=[...PLAYERS,...EVENTS,...OPS,...TEAMS];
 const TEAM_SRCS=TEAMS.map(t=>t.src);
 
@@ -549,7 +569,12 @@ function fmt(sec){
 }
 
 function updateSub(){
-  if(cur&&curIsTeam){ document.getElementById('nowSub').textContent='▶ '+curName+' · '+fmt(cur.currentTime); return; }
+  if(cur&&curIsTeam){
+    const L=songList(), t=cur.currentTime;
+    let txt='▶ '+curName+' · '+fmt(t);
+    if(L){ const i=songIdx(L,t); txt='▶ '+(i+1)+'/'+L.length+(L[i][1]?' 「'+L[i][1]+'」':'')+' · '+curName+' · '+fmt(t); }
+    document.getElementById('nowSub').textContent=txt; return;
+  }
   const parts=TEAMS.map(t=>{ const p=teamPos[t.src]||0; return p>2?t.label.split(' ')[0]+' '+fmt(p):null; }).filter(Boolean);
   document.getElementById('nowSub').textContent=parts.length?'저장: '+parts.join(' · '):'구단 응원송 저장 위치 없음';
 }
@@ -570,16 +595,40 @@ function startProg(){
 // ── 재생 위치 이동 ──
 let seekDragging=false,seekRatio=0;
 function hasDur(){ return !!cur&&isFinite(cur.duration)&&cur.duration>0; }
-// 타자 등장곡(30초 남짓)은 10초, 나머지는 30초씩 건너뛴다
+// 타자 등장곡(30초 남짓)은 10초, 나머지는 30초씩 건너뛴다. 구단 응원가는 곡 단위로 넘긴다.
 const PLAYER_SRCS=PLAYERS.map(p=>p.src);
 function skipStep(){ return cur&&PLAYER_SRCS.includes(curSrc)?10:30; }
+function songList(){
+  if(!cur||!curIsTeam)return null;
+  const t=TEAMS.find(x=>x.src===curSrc);
+  return t&&TEAM_SONGS[t.key]||null;
+}
+function songIdx(L,t){ let i=0; for(let k=0;k<L.length;k++) if(t>=L[k][0]-0.3) i=k; return i; }
+let tickFor=null;
+function drawTicks(L){
+  const key=L&&hasDur()?curSrc:null;
+  if(key===tickFor)return; tickFor=key;
+  const track=document.getElementById('seekTrack');
+  track.querySelectorAll('.seek-tick').forEach(el=>el.remove());
+  if(!key)return;
+  L.slice(1).forEach(([t])=>{
+    const el=document.createElement('span'); el.className='seek-tick';
+    el.style.left=(t/cur.duration*100)+'%'; track.appendChild(el);
+  });
+}
 function setSeekUI(){
-  const ok=hasDur(), st=skipStep();
-  document.getElementById('skipBack').textContent='⏪ '+st+'초';
-  document.getElementById('skipFwd').textContent=st+'초 ⏩';
+  const ok=hasDur(), L=songList();
+  const back=document.getElementById('skipBack'), fwd=document.getElementById('skipFwd');
+  if(L){
+    back.textContent='⏮ 이전 곡'; fwd.textContent='다음 곡 ⏭';
+    back.disabled=!ok; fwd.disabled=!ok||songIdx(L,cur.currentTime)>=L.length-1;
+  }else{
+    const st=skipStep();
+    back.textContent='⏪ '+st+'초'; fwd.textContent=st+'초 ⏩';
+    back.disabled=!ok; fwd.disabled=!ok;
+  }
   document.getElementById('seek').classList.toggle('on',ok);
-  document.getElementById('skipBack').disabled=!ok;
-  document.getElementById('skipFwd').disabled=!ok;
+  drawTicks(L);
 }
 function showPos(c){
   const d=cur.duration;
@@ -591,7 +640,15 @@ function moveTo(sec){
   cur.currentTime=Math.min(Math.max(0,sec),Math.max(0,cur.duration-0.5));
   showPos(cur.currentTime); savePos(); updateSub(); updateBadges();
 }
-function skip(dir){ if(hasDur()) moveTo(cur.currentTime+dir*skipStep()); }
+function skip(dir){
+  if(!hasDur())return;
+  const L=songList();
+  if(!L){ moveTo(cur.currentTime+dir*skipStep()); return; }
+  const t=cur.currentTime, i=songIdx(L,t);
+  if(dir>0){ if(i+1<L.length) moveTo(L[i+1][0]); }
+  else moveTo(t-L[i][0]>3||i===0?L[i][0]:L[i-1][0]);  // 곡 시작 3초 뒤면 그 곡 처음으로, 아니면 앞 곡으로
+  setSeekUI();
+}
 (function initSeek(){
   const seek=document.getElementById('seek'), track=document.getElementById('seekTrack');
   const ratioOf=e=>{ const r=track.getBoundingClientRect(); return Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); };
