@@ -345,7 +345,7 @@ details[open] summary::before { content: '▼  '; }
   <div class="sec-head">
     <span class="sec-tag red">TEAM</span>
     <span class="sec-label">KBO 구단 응원가</span>
-    <span class="sec-count">5</span>
+    <span class="sec-count">10</span>
   </div>
   <div class="grid g2" id="teamGrid"></div>
 
@@ -374,7 +374,9 @@ details[open] summary::before { content: '▼  '; }
       <code>homerun.mp3</code> / <code>hit.mp3</code> / <code>strikeout.mp3</code> / <code>out.mp3</code><br>
       <code>change.mp3</code> / <code>start.mp3</code> / <code>end.mp3</code><br>
       <code>team_hanwha.mp3</code> / <code>team_kiwoom.mp3</code> / <code>team_lg.mp3</code><br>
-      <code>team_lotte.mp3</code> / <code>team_samsung.mp3</code>
+      <code>team_lotte.mp3</code> / <code>team_samsung.mp3</code><br>
+      <code>team_kia.mp3</code> / <code>team_doosan.mp3</code> / <code>team_ssg.mp3</code><br>
+      <code>team_nc.mp3</code> / <code>team_kt.mp3</code>
     </div>
   </details>
 
@@ -410,6 +412,11 @@ const TEAMS=[
   {key:'team_lg',label:'LG 트윈스',icon:'⚡',src:'music/team_lg.mp3'},
   {key:'team_lotte',label:'롯데 자이언츠',icon:'🌊',src:'music/team_lotte.mp3'},
   {key:'team_samsung',label:'삼성 라이온즈',icon:'🦁',src:'music/team_samsung.mp3'},
+  {key:'team_kia',label:'KIA 타이거즈',icon:'🐯',src:'music/team_kia.mp3'},
+  {key:'team_doosan',label:'두산 베어스',icon:'🐻',src:'music/team_doosan.mp3'},
+  {key:'team_ssg',label:'SSG 랜더스',icon:'🚀',src:'music/team_ssg.mp3'},
+  {key:'team_nc',label:'NC 다이노스',icon:'🦖',src:'music/team_nc.mp3'},
+  {key:'team_kt',label:'KT 위즈',icon:'✨',src:'music/team_kt.mp3'},
 ];
 const ALL=[...PLAYERS,...EVENTS,...OPS,...TEAMS];
 const TEAM_SRCS=TEAMS.map(t=>t.src);
