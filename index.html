@@ -329,9 +329,9 @@ details[open] summary::before { content: '▼  '; }
     <div class="now-time" id="nowTime"></div>
   </div>
   <div class="seek-row">
-    <button class="seek-btn" id="skipBack" onclick="skip(-30)" disabled>⏪ 30초</button>
+    <button class="seek-btn" id="skipBack" onclick="skip(-1)" disabled>⏪ 30초</button>
     <div class="seek" id="seek"><div class="progress-track" id="seekTrack"><div class="progress-fill" id="progFill"><span class="seek-thumb"></span></div></div></div>
-    <button class="seek-btn" id="skipFwd" onclick="skip(30)" disabled>30초 ⏩</button>
+    <button class="seek-btn" id="skipFwd" onclick="skip(1)" disabled>30초 ⏩</button>
   </div>
   <div class="now-sub" id="nowSub">구단 응원송 저장 위치 없음</div>
 </div>
@@ -397,7 +397,7 @@ details[open] summary::before { content: '▼  '; }
       구단 응원송은 버튼 눌렀을 때만 재생됩니다.<br>
       응원송 재생 중 다른 음원 누르면 <strong>현재 위치 자동 저장</strong>,<br>
       같은 구단 버튼 다시 누르면 저장된 위치부터 이어서 재생됩니다.<br>
-      위쪽 막대를 누르거나 끌면 그 위치로 가고, <strong>⏪ 30초 / 30초 ⏩</strong>로 30초씩 건너뜁니다.<br><br>
+      위쪽 막대를 누르거나 끌면 그 위치로 가고, <strong>⏪ / ⏩</strong> 버튼으로 건너뜁니다 (타자 등장곡 10초, 나머지 30초).<br><br>
       <strong>폴더 구성</strong><br>
       HTML 파일 옆에 <code>music/</code> 폴더를 두세요.<br><br>
       <code>player1.mp3</code> ~ <code>player9.mp3</code><br>
@@ -570,8 +570,13 @@ function startProg(){
 // ── 재생 위치 이동 ──
 let seekDragging=false,seekRatio=0;
 function hasDur(){ return !!cur&&isFinite(cur.duration)&&cur.duration>0; }
+// 타자 등장곡(30초 남짓)은 10초, 나머지는 30초씩 건너뛴다
+const PLAYER_SRCS=PLAYERS.map(p=>p.src);
+function skipStep(){ return cur&&PLAYER_SRCS.includes(curSrc)?10:30; }
 function setSeekUI(){
-  const ok=hasDur();
+  const ok=hasDur(), st=skipStep();
+  document.getElementById('skipBack').textContent='⏪ '+st+'초';
+  document.getElementById('skipFwd').textContent=st+'초 ⏩';
   document.getElementById('seek').classList.toggle('on',ok);
   document.getElementById('skipBack').disabled=!ok;
   document.getElementById('skipFwd').disabled=!ok;
@@ -586,7 +591,7 @@ function moveTo(sec){
   cur.currentTime=Math.min(Math.max(0,sec),Math.max(0,cur.duration-0.5));
   showPos(cur.currentTime); savePos(); updateSub(); updateBadges();
 }
-function skip(sec){ if(hasDur()) moveTo(cur.currentTime+sec); }
+function skip(dir){ if(hasDur()) moveTo(cur.currentTime+dir*skipStep()); }
 (function initSeek(){
   const seek=document.getElementById('seek'), track=document.getElementById('seekTrack');
   const ratioOf=e=>{ const r=track.getBoundingClientRect(); return Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)); };
