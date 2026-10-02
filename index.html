@@ -282,6 +282,11 @@ input[type=range].vol-slider::-webkit-slider-thumb {
   font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 500;
 }
 .tool-btn.on { border-color: var(--green); color: var(--green); }
+.club-sel {
+  width: 92px; height: 40px; flex-shrink: 0; padding: 0 6px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--surface); color: var(--text); border-radius: 9px;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 500;
+}
 .next-bat {
   width: 100%; display: flex; align-items: center; gap: 12px;
   padding: 13px 16px; margin-bottom: 8px; border-radius: 12px;
@@ -430,6 +435,7 @@ details[open] summary::before { content: '▼  '; }
   </div>
   <div class="bat-tools">
     <div class="seg" id="teamSeg"><button onclick="setActiveTeam(0)"></button><button onclick="setActiveTeam(1)"></button></div>
+    <select class="club-sel" id="clubSel" onchange="loadClub(this.value)" aria-label="구단 라인업 불러오기"></select>
     <button class="tool-btn" id="editBtn" onclick="toggleEdit()">라인업 편집</button>
   </div>
   <button class="next-bat" id="nextBat" onclick="nextBatter()"></button>
@@ -479,7 +485,9 @@ details[open] summary::before { content: '▼  '; }
       위쪽 막대를 누르거나 끌면 그 위치로 가고, 양옆 버튼으로 건너뜁니다.<br>
       구단 응원가는 <strong>⏮ 이전 곡 / 다음 곡 ⏭</strong>, 타자 등장곡은 10초, 나머지는 30초씩.<br><br>
       <strong>타자 라인업</strong><br>
-      「라인업 편집」에서 팀마다 9명의 이름과 등장곡을 정합니다. 등장곡은 기본 9곡이나 구단 응원가 중 한 곡을 고를 수 있습니다.<br>
+      <strong>구단 선택</strong>에서 구단을 고르면 지금 팀(청팀·백팀)이 그 구단 주전 9명의 이름과 등장곡으로 바뀝니다. 10개 구단 90명이 들어 있습니다.<br>
+      「라인업 편집」에서 팀마다 9명의 이름과 등장곡을 정합니다. 등장곡은 기본 9곡, 10개 구단 선수 등장곡, 구단 응원가 중 한 곡을 고를 수 있습니다.<br>
+      선수 등장곡은 등장곡 뒤에 그 선수 응원가까지 이어집니다. 「등장곡 길이」를 「끝까지」로 두면 응원가까지 다 나옵니다.<br>
       <strong>다음 타자</strong>를 누르면 「3번 타자, 김민준!」 하고 불러 준 뒤 등장곡이 나오고, 정한 길이가 지나면 저절로 줄어듭니다.<br>
       「공수교대」를 누르면 상대 팀 라인업으로 바뀝니다. 각 팀은 자기 타순을 따로 기억합니다.<br>
       이름은 이 기기에만 저장됩니다. 엣지 브라우저로 열면 더 자연스러운 목소리(선히)가 나옵니다.
@@ -876,8 +884,27 @@ function luDefault(){
 let LU=(()=>{ try{ const v=JSON.parse(localStorage.getItem(LU_KEY)); if(v&&v.teams&&v.teams.length===2) return {...luDefault(),...v}; }catch{} return luDefault(); })();
 function saveLU(){ try{ localStorage.setItem(LU_KEY,JSON.stringify(LU)); }catch{} }
 function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-// 등장곡 id: 'player3' = 기본 등장곡 3 · 'team_kia:6' = KIA 응원가 7번째 곡
+// 구단 주전 9명(타순대로)과 등장곡 — 놀맘댈 「2026.09 ver.」 구단별 플레이리스트의 「선수 등장곡+응원가」 챕터를
+// 처음 나오는 9명까지 잘랐다(영상이 라인업 순서로 시작한다). 파일: music/walk/삼성이면 samsung1~9.mp3, 음량은 -14 LUFS로 맞춤
+const CLUB_LINEUP={
+  team_samsung:["김지찬","김성윤","구자욱","최형우","디아즈","김영웅","류지혁","강민호","이재현"],
+  team_kia:["박정우","박재현","김도영","카스트로","나성범","김선빈","하주석","김태군","김호령"],
+  team_lg:["신민재","박해민","오스틴","송찬의","문정빈","문보경","오지환","박동원","홍창기"],
+  team_doosan:["박찬호","안재석","박준순","양의지","김민석","세베리노","양석환","조수행","정수빈"],
+  team_hanwha:["최인호","페라자","문현빈","강백호","노시환","허인서","김태연","정은원","심우준"],
+  team_lotte:["황성빈","나승엽","레이예스","한동희","고승민","윤동희","전민재","손성빈","장두성"],
+  team_ssg:["박성한","에레디아","최정","김재환","고명준","전의산","최지훈","조형우","정준재"],
+  team_nc:["김주원","권희동","박민우","블레인","김휘집","박건우","김형준","천재환","최정원"],
+  team_kt:["최원준","김민혁","안현민","힐리어드","김현수","허경민","김상수","한승택","권동진"],
+  team_kiwoom:["서건창","데이비슨","히우라","박찬혁","김웅빈","김건희","여동욱","김태진","이주형"],
+};
+const clubShort=k=>(TEAMS.find(t=>t.key===k)||{label:''}).label.split(' ')[0];
+// 등장곡 id: 'player3' = 기본 등장곡 3 · 'team_kia:6' = KIA 응원가 7번째 곡 · 'w:team_kia:2' = KIA 3번 타자 등장곡
 function songInfo(id){
+  if(typeof id==='string'&&id.startsWith('w:')){
+    const [,k,i]=id.split(':'), L=CLUB_LINEUP[k];
+    if(L&&L[+i]) return {src:'music/walk/'+k.slice(5)+(+i+1)+'.mp3',start:0,label:clubShort(k)+' '+L[+i]};
+  }
   if(typeof id==='string'&&id.indexOf(':')>0){
     const [k,i]=id.split(':'); const t=TEAMS.find(x=>x.key===k), L=TEAM_SONGS[k];
     if(t&&L&&L[+i]) return {src:t.src,start:L[+i][0],label:L[+i][1]};
@@ -895,7 +922,9 @@ function renderBatters(){
   T.slots.forEach((s,i)=>{
     const b=document.createElement('button');
     b.className='pad player'+(i===n?' up':''); b.id='bat_'+i;
-    b.innerHTML=`<span class="pad-num">${i+1}</span><span class="pad-label">${esc(s.name.trim()||(i+1)+'번 타자')}</span><span class="pad-song">${esc(songInfo(s.song).label)}</span>`;
+    // 선수 이름 그대로면 곡 이름 줄엔 「삼성 등장곡」만 (같은 이름 두 번 안 쓰게)
+    const lab=songInfo(s.song).label, nm=s.name.trim(), songTxt=nm&&lab.endsWith(' '+nm)?lab.split(' ')[0]+' 등장곡':lab;
+    b.innerHTML=`<span class="pad-num">${i+1}</span><span class="pad-label">${esc(nm||(i+1)+'번 타자')}</span><span class="pad-song">${esc(songTxt)}</span>`;
     b.addEventListener('click',e=>{ ripple(b,e); callBatter(i); });
     g.appendChild(b);
   });
@@ -922,10 +951,30 @@ function toggleEdit(){
 function songOptions(sel){
   let h='<optgroup label="기본 등장곡">'+PLAYERS.map(p=>`<option value="${p.key}"${p.key===sel?' selected':''}>등장곡 ${p.key.slice(6)}</option>`).join('')+'</optgroup>';
   TEAMS.forEach(t=>{
+    const L=CLUB_LINEUP[t.key]||[];
+    h+=`<optgroup label="${esc(t.label)} 선수 등장곡">`+L.map((n,i)=>{ const v='w:'+t.key+':'+i; return `<option value="${v}"${v===sel?' selected':''}>${esc(clubShort(t.key)+' '+(i+1)+'번 '+n)}</option>`; }).join('')+'</optgroup>';
+  });
+  TEAMS.forEach(t=>{
     const L=TEAM_SONGS[t.key]||[];
     h+=`<optgroup label="${esc(t.label)} 응원가">`+L.map((x,i)=>{ const v=t.key+':'+i; return `<option value="${v}"${v===sel?' selected':''}>${esc(t.label.split(' ')[0]+' · '+x[1])}</option>`; }).join('')+'</optgroup>';
   });
   return h;
+}
+// 구단 선택 → 지금 팀(청팀/백팀)을 그 구단 주전 9명과 등장곡으로 통째로 바꾼다
+function renderClubSel(){
+  document.getElementById('clubSel').innerHTML='<option value="">구단 선택</option>'+
+    TEAMS.filter(t=>CLUB_LINEUP[t.key]).map(t=>`<option value="${t.key}">${esc(t.label)}</option>`).join('');
+}
+function loadClub(k){
+  const sel=document.getElementById('clubSel'); sel.value='';
+  const L=CLUB_LINEUP[k]; if(!L)return;
+  const T=LU.teams[LU.active], tn=T.name||(LU.active?'백팀':'청팀');
+  const fromClub=T.slots.every(s=>!s.name.trim()||String(s.song).startsWith('w:'));
+  if(!fromClub&&!confirm(`${tn} 라인업을 ${clubShort(k)} 주전 9명으로 바꿀까요?\n지금 적어 둔 이름과 등장곡은 지워집니다.`))return;
+  T.name=clubShort(k); T.next=0;
+  T.slots=L.map((n,i)=>({name:n,song:'w:'+k+':'+i}));
+  saveLU(); renderBatters();
+  if(document.getElementById('lineupEdit').classList.contains('open')) renderEdit();
 }
 function testVoice(){
   const T=LU.teams[LU.active], n=T.next||0, nm=T.slots[n].name.trim()||'김민준';
@@ -962,7 +1011,7 @@ function renderEdit(){
     </div>`;
 }
 
-renderPads(); renderBatters(); renderVolItems(); updateSub(); updateBadges();
+renderPads(); renderClubSel(); renderBatters(); renderVolItems(); updateSub(); updateBadges();
 </script>
 </body>
 </html>
