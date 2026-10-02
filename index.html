@@ -408,84 +408,159 @@ details[open] summary::before { content: '▼  '; }
   border-radius: 4px; padding: 1px 4px;
 }
 .safe-pad { height: calc(16px + var(--safe)); }
+
+/* ══════════ 새 경기 화면 ══════════ */
+body { padding-bottom: calc(146px + var(--safe)); }
+.hero {
+  position: relative; height: 168px; overflow: hidden;
+  background: url('img/hero.jpg') 70% 40%/cover, url('img/stadium.jpg') center 40%/cover, #060a10;
+}
+.hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,9,15,.92) 0%, rgba(5,9,15,.55) 55%, rgba(5,9,15,.15) 100%), linear-gradient(0deg, rgba(10,14,20,1) 0%, rgba(10,14,20,0) 40%); }
+.hero-in { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 16px 14px; }
+.hero-kicker { align-self: flex-start; font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: .2em; color: #0a0e14; background: var(--yellow); padding: 2px 8px; border-radius: 4px; }
+.hero-title { margin-top: 6px; font-size: 26px; font-weight: 600; letter-spacing: -.02em; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+.hero-title b { font-family: 'Oswald', sans-serif; color: var(--yellow); letter-spacing: .02em; }
+.hero .matchup { margin: 8px 0 0; }
+.mu-team { font-size: 13px; }
+.mu-team img, .mu-dot { width: 28px; height: 28px; }
+
+.now-bar { position: sticky; top: 0; height: auto; padding: 8px 14px 6px; gap: 2px; background: rgba(6,10,16,.96); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.now-top { gap: 8px; }
+#nowPlaying { font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; }
+.np-btn { height: 30px; padding: 0 11px; border: none; border-radius: 7px; color: #fff; font-family: 'Noto Sans KR', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; touch-action: manipulation; flex-shrink: 0; }
+.np-btn:active { transform: scale(.93); }
+.np-stop { background: #b91c1c; }
+.np-fade { background: var(--surface2); border: 1px solid var(--border2); }
+.seek-row { gap: 6px; }
+.seek { height: 28px; }
+.seek-btn { height: 28px; padding: 0 8px; font-size: 11px; }
+.now-sub { font-size: 11px; min-height: 0; }
+.now-sub:empty { display: none; }
+
+.content { padding: 12px 12px 8px; }
+.tab-pane { display: none; }
+.tab-pane.on { display: block; }
+.sec-head { margin: 18px 0 9px; }
+.sec-head:first-child { margin-top: 4px; }
+.sec-label { font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.sec-note { margin-left: auto; font-size: 11px; color: var(--muted); }
+.sec-note b { color: var(--text); }
+.bt-k { font-size: 12px; color: var(--muted); width: 30px; flex-shrink: 0; }
+.seg-mode { flex: 0 0 132px; }
+.bat-duo { margin-bottom: 10px; }
+.now-bat, .next-bat { padding: 13px 14px; min-height: 86px; }
+.nb-n { font-size: 30px; }
+.nb-name { font-size: 18px; }
+#playerGrid .pad { min-height: 64px; padding: 10px 6px 9px; }
+#playerGrid .pad-label { font-size: 14px; font-weight: 600; }
+
+/* 구단 응원가: 마스코트 + 이름 가로 배치 */
+#teamGrid .pad { flex-direction: row; justify-content: flex-start; gap: 10px; min-height: 60px; padding: 10px 12px; text-align: left; }
+#teamGrid .pad-icon img { width: 40px; height: 40px; }
+#teamGrid .pad-label { font-size: 13px; font-weight: 600; }
+#opsGrid .pad { min-height: 54px; }
+#opsGrid .pad-icon { display: none; }
+#opsGrid .pad-label { font-size: 14px; font-weight: 600; }
+
+.vol-card { display: flex; align-items: center; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.vol-card .vol-slider { height: 4px; }
+#tab-set .lineup-edit { margin-top: 0; }
+#tab-set details { margin-top: 18px; }
+
+/* 아래 고정: 효과음 줄 + 탭 */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 120; background: rgba(6,10,16,.97); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border2); padding-bottom: var(--safe); }
+.fx { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 10px 6px; }
+body:not(.on-game) .fx { display: none; }
+.fx .pad { min-height: 50px; padding: 6px 2px; border-radius: 10px; gap: 0; border-width: 1px; }
+.fx .pad-icon { display: none; }
+.fx .pad-label { font-size: 14px; font-weight: 700; }
+.fx .pad::before { content: ''; position: absolute; left: 8px; right: 8px; top: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--fx, var(--orange)); }
+.fx #pad_homerun { --fx: #ef4444; background: rgba(239,68,68,.12); }
+.fx #pad_hit { --fx: #22c55e; }
+.fx #pad_strikeout { --fx: #fbbf24; }
+.fx #pad_out { --fx: #94a3b8; }
+.fx #pad_change { --fx: #a78bfa; }
+.tabbar { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+.tb { height: 54px; border: none; background: none; color: var(--muted); font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; touch-action: manipulation; }
+.tb svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb.on { color: var(--yellow); }
+.content, .fx, .tabbar, .now-bar > * { max-width: 680px; margin-left: auto; margin-right: auto; width: 100%; }
+.hero-in { max-width: 680px; margin: 0 auto; }
+body:not(.on-game) { padding-bottom: calc(66px + var(--safe)); }
 </style>
 </head>
 <body>
 
+<!-- 경기 화면: 헤더(사진) → 지금 재생 줄(따라 붙음) → 탭 내용 → 아래 고정 효과음 줄 + 탭 -->
+<header class="hero">
+  <div class="hero-in">
+    <div class="hero-kicker">PLAY BALL</div>
+    <h1 class="hero-title">야구 수업 <b>DJ</b> 턴테이블</h1>
+    <div class="matchup" id="matchup"></div>
+  </div>
+</header>
+
 <div class="now-bar">
-  <div class="now-title-row"><span class="brand">⚾ 야구 수업 <b>DJ</b> 턴테이블</span><span class="matchup" id="matchup"></span></div>
   <div class="now-top">
     <div class="now-led" id="nowLed"></div>
     <div id="nowPlaying">대기 중</div>
     <div class="now-time" id="nowTime"></div>
+    <button class="np-btn np-fade" onclick="fadeOut()" aria-label="페이드">페이드</button>
+    <button class="np-btn np-stop" onclick="stopAll()" aria-label="정지">정지</button>
   </div>
   <div class="seek-row">
     <button class="seek-btn" id="skipBack" onclick="skip(-1)" disabled>⏪ 30초</button>
     <div class="seek" id="seek"><div class="progress-track" id="seekTrack"><div class="progress-fill" id="progFill"><span class="seek-thumb"></span></div></div></div>
     <button class="seek-btn" id="skipFwd" onclick="skip(1)" disabled>30초 ⏩</button>
   </div>
-  <div class="now-sub" id="nowSub">구단 응원송 저장 위치 없음</div>
+  <div class="now-sub" id="nowSub"></div>
 </div>
 
-<div class="ctrl-bar">
-  <button class="cbtn cbtn-stop" onclick="stopAll()">■ 정지</button>
-  <button class="cbtn cbtn-fade" onclick="fadeOut()">↓ 페이드</button>
-  <button class="cbtn cbtn-reset" onclick="resetTeamPositions()">위치초기화</button>
-  <div class="vol-row">
-    <span class="vol-icon">🔊</span>
-    <input class="vol-slider" type="range" min="0" max="1" step="0.01" value="0.8"
-      oninput="setMasterVol(this.value)">
-    <span class="vol-pct" id="masterPct">80%</span>
-  </div>
-</div>
+<main class="content">
 
-<div class="content">
+  <section class="tab-pane on" id="tab-game">
+    <div class="bat-tools">
+      <span class="bt-k">공격</span>
+      <div class="seg" id="teamSeg"><button onclick="setActiveTeam(0)"></button><button onclick="setActiveTeam(1)"></button></div>
+    </div>
+    <div class="bat-tools">
+      <button class="club-sel" id="clubSel" onclick="openClubModal()" aria-haspopup="dialog"></button>
+      <div class="seg seg-mode" id="modeSeg"><button data-m="cheer" onclick="setMode('cheer')">응원가</button><button data-m="walk" onclick="setMode('walk')">등장곡</button></div>
+    </div>
+    <div class="bat-duo">
+      <button class="now-bat" id="nowBat" onclick="replayBatter()"></button>
+      <button class="next-bat" id="nextBat" onclick="nextBatter()"></button>
+    </div>
+    <div class="grid g3" id="playerGrid"></div>
+    <button class="tool-btn edit-wide" id="editBtn" onclick="showTab('set')">라인업 편집 · 이름 부르기 설정</button>
+  </section>
 
-  <div class="sec-head">
-    <span class="sec-tag green">BATTER</span>
-    <span class="sec-label">타자 응원가 · 등장곡</span>
-    <span class="sec-count">9</span>
-  </div>
-  <!-- 1줄: 공격 팀 · 2줄: 그 팀 구단 고르기 + 응원가/등장곡 · 다음 타자 · 9명 · 편집은 맨 아래 -->
-  <div class="bat-tools">
-    <div class="seg" id="teamSeg"><button onclick="setActiveTeam(0)"></button><button onclick="setActiveTeam(1)"></button></div>
-  </div>
-  <div class="bat-tools">
-    <button class="club-sel" id="clubSel" onclick="openClubModal()" aria-haspopup="dialog"></button>
-    <div class="seg" id="modeSeg"><button data-m="cheer" onclick="setMode('cheer')">응원가</button><button data-m="walk" onclick="setMode('walk')">등장곡</button></div>
-  </div>
-  <div class="bat-duo">
-    <button class="now-bat" id="nowBat" onclick="replayBatter()"></button>
-    <button class="next-bat" id="nextBat" onclick="nextBatter()"></button>
-  </div>
-  <div class="grid g3" id="playerGrid"></div>
-  <button class="tool-btn edit-wide" id="editBtn" onclick="toggleEdit()">라인업 편집 (이름·곡 바꾸기)</button>
-  <div class="lineup-edit" id="lineupEdit"></div>
+  <section class="tab-pane" id="tab-cheer">
+    <div class="sec-head">
+      <span class="sec-label">KBO 구단 응원가</span>
+      <span class="sec-note">구단마다 약 20분 · 다시 누르면 이어서</span>
+    </div>
+    <div class="grid g2" id="teamGrid"></div>
+    <button class="tool-btn edit-wide" onclick="resetTeamPositions()">이어 듣기 위치 모두 처음으로</button>
+    <div class="sec-head">
+      <span class="sec-label">경기 음악</span>
+    </div>
+    <div class="grid g2" id="opsGrid"></div>
+  </section>
 
-  <div class="sec-head">
-    <span class="sec-tag orange">EVENT</span>
-    <span class="sec-label">경기 효과음</span>
-    <span class="sec-count">4</span>
-  </div>
-  <div class="grid g2" id="eventGrid"></div>
-
-  <div class="sec-head">
-    <span class="sec-tag purple">OPS</span>
-    <span class="sec-label">운영 상황</span>
-    <span class="sec-count">3</span>
-  </div>
-  <div class="grid g3" id="opsGrid"></div>
-
-  <div class="sec-head">
-    <span class="sec-tag red">TEAM</span>
-    <span class="sec-label">KBO 구단 응원가</span>
-    <span class="sec-count">10</span>
-  </div>
-  <div class="grid g2" id="teamGrid"></div>
-
-  <details>
-    <summary>사용 방법</summary>
-    <div class="hint-body">
+  <section class="tab-pane" id="tab-set">
+    <div class="sec-head"><span class="sec-label">전체 음량</span><span class="sec-note" id="masterPct">80%</span></div>
+    <div class="vol-card">
+      <span class="vol-icon">🔈</span>
+      <input class="vol-slider" type="range" min="0" max="1" step="0.01" value="0.8" oninput="setMasterVol(this.value)" aria-label="전체 음량">
+      <span class="vol-icon">🔊</span>
+    </div>
+    <div class="sec-head"><span class="sec-label">라인업 편집</span><span class="sec-note" id="setTeamName" hidden></span></div>
+    <div class="bat-tools"><span class="bt-k">팀</span><div class="seg" id="setSeg"><button onclick="setActiveTeam(0)"></button><button onclick="setActiveTeam(1)"></button></div></div>
+    <div class="lineup-edit open" id="lineupEdit"></div>
+    <details>
+      <summary>사용 방법</summary>
+      <div class="hint-body">
       <strong>동작 방식</strong><br>
       구단 응원송은 버튼 눌렀을 때만 재생됩니다.<br>
       응원송 재생 중 다른 음원 누르면 <strong>현재 위치 자동 저장</strong>,<br>
@@ -501,8 +576,17 @@ details[open] summary::before { content: '▼  '; }
       이름은 이 기기에만 저장됩니다. 엣지 브라우저로 열면 더 자연스러운 목소리(선히)가 나옵니다.
     </div>
   </details>
+  </section>
 
-  <div class="safe-pad"></div>
+</main>
+
+<div class="dock">
+  <div class="fx" id="eventGrid"></div>
+  <nav class="tabbar" role="tablist">
+    <button class="tb on" data-tab="game" onclick="showTab('game')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 4.5c1.6 2 2.4 4.5 2.4 7.5S9.6 17.5 8 19.5M16 4.5c-1.6 2-2.4 4.5-2.4 7.5s.8 5.5 2.4 7.5"/></svg>경기</button>
+    <button class="tb" data-tab="cheer" onclick="showTab('cheer')"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>구단 응원가</button>
+    <button class="tb" data-tab="set" onclick="showTab('set')"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>라인업·설정</button>
+  </nav>
 </div>
 
 <div class="cm-wrap" id="clubModal" onclick="if(event.target===this)closeClubModal()" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
@@ -605,8 +689,8 @@ function renderPads(){
   EVENTS.forEach(e=>document.getElementById('eventGrid').appendChild(makePad(e,'event',false)));
   OPS.forEach(o=>{
     const b=makePad(o,'ops',false);
-    if(o.key==='change') b.addEventListener('click',()=>setActiveTeam(1-LU.active));  // 공수교대 → 상대 팀 라인업
-    document.getElementById('opsGrid').appendChild(b);
+    if(o.key==='change'){ b.addEventListener('click',()=>setActiveTeam(1-LU.active)); document.getElementById('eventGrid').appendChild(b); }  // 공수교대 → 상대 팀 라인업
+    else document.getElementById('opsGrid').appendChild(b);
   });
   TEAMS.forEach(t=>document.getElementById('teamGrid').appendChild(makePad(t,'team',true)));
 }
@@ -651,7 +735,7 @@ function updateSub(){
     document.getElementById('nowSub').textContent=txt; return;
   }
   const parts=TEAMS.map(t=>{ const p=teamPos[t.src]||0; return p>2?t.label.split(' ')[0]+' '+fmt(p):null; }).filter(Boolean);
-  document.getElementById('nowSub').textContent=parts.length?'저장: '+parts.join(' · '):'구단 응원송 저장 위치 없음';
+  document.getElementById('nowSub').textContent=parts.length?'이어 듣기: '+parts.join(' · '):'';
 }
 
 function startProg(){
@@ -952,13 +1036,17 @@ function callBatter(i){
 function replayBatter(){ const c=LU.teams[LU.active].cur; if(c!=null) callBatter(c); }
 function nextBatter(){ callBatter(LU.teams[LU.active].next||0); }
 function setMode(m){ LU.mode=m; saveLU(); renderBatters(); }
-function setActiveTeam(i){ LU.active=i; saveLU(); renderBatters(); if(document.getElementById('lineupEdit').classList.contains('open')) renderEdit(); }
-function toggleEdit(){
-  const el=document.getElementById('lineupEdit'), open=!el.classList.contains('open');
-  el.classList.toggle('open',open); document.getElementById('editBtn').classList.toggle('on',open);
-  document.getElementById('editBtn').textContent=open?'편집 닫기':'라인업 편집 (이름·곡 바꾸기)';
-  if(open) renderEdit();
+function setActiveTeam(i){ LU.active=i; saveLU(); renderBatters(); renderEdit(); }
+// 아래 탭: 경기 / 구단 응원가 / 라인업·설정. 효과음 줄은 경기 탭에서만
+function showTab(t){
+  document.querySelectorAll('.tab-pane').forEach(el=>el.classList.toggle('on',el.id==='tab-'+t));
+  document.querySelectorAll('.tabbar .tb').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.body.classList.toggle('on-game',t==='game');
+  if(t==='set') renderEdit();
+  try{ sessionStorage.setItem('bb_tab',t); }catch{}
+  window.scrollTo({top:document.querySelector('.hero').offsetHeight,behavior:'instant'});
 }
+function toggleEdit(){ showTab('set'); }
 function songOptions(sel){
   let h='<optgroup label="기본 등장곡">'+PLAYERS.map(p=>`<option value="${p.key}"${p.key===sel?' selected':''}>등장곡 ${p.key.slice(6)}</option>`).join('')+'</optgroup>';
   TEAMS.forEach(t=>{
@@ -1014,6 +1102,7 @@ function clearTeam(){
 }
 function renderEdit(){
   const T=LU.teams[LU.active], el=document.getElementById('lineupEdit');
+  document.querySelectorAll('#setSeg button').forEach((b,i)=>{ b.textContent=LU.teams[i].name||(i?'백팀':'청팀'); b.classList.toggle('on',i===LU.active); });
   const vs=koVoices(), best=pickVoice();
   const vname=v=>v.name.replace(/^Microsoft /,'').replace(/ - Korean.*$/,'');
   el.innerHTML=`
@@ -1039,6 +1128,7 @@ function renderEdit(){
 }
 
 renderPads(); renderBatters(); renderMatchup(); updateSub(); updateBadges();
+(()=>{ let t='game'; try{ t=sessionStorage.getItem('bb_tab')||'game'; }catch{} document.body.classList.add('on-game'); if(t!=='game') showTab(t); })();
 </script>
 </body>
 </html>
