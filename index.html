@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="야구 DJ">
+<meta name="theme-color" content="#060a10">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>야구 수업 DJ 턴테이블</title>
 <meta name="description" content="KBO 10개 구단 선수 응원가·등장곡, 팀 응원가, 홈런·안타 효과음을 버튼 하나로 트는 야구 수업용 음향 조작판">
 <meta property="og:type" content="website">
@@ -470,6 +476,21 @@ body { padding-bottom: calc(146px + var(--safe)); }
 }
 .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,9,15,.92) 0%, rgba(5,9,15,.55) 55%, rgba(5,9,15,.15) 100%), linear-gradient(0deg, rgba(10,14,20,1) 0%, rgba(10,14,20,0) 40%); }
 .hero-in { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 16px 14px; }
+.hero-acts { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: 10px; z-index: 2; display: flex; gap: 6px; }
+.ha-btn {
+  display: flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 15px; cursor: pointer; touch-action: manipulation;
+  background: rgba(6,10,16,.55); border: 1px solid rgba(255,255,255,.25); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  font-family: 'Noto Sans KR', sans-serif; font-size: 11px; font-weight: 600;
+}
+.ha-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ha-main { background: var(--yellow); border-color: var(--yellow); color: #0a0e14; }
+.ha-btn[hidden] { display: none; }
+/* 홈 화면에서 앱처럼 열었을 때: 맨 위 상태 표시줄만큼 띄우기 */
+.standalone .hero { height: calc(168px + env(safe-area-inset-top, 0px)); }
+.now-bar { top: env(safe-area-inset-top, 0px); }
+body::before { content: ''; position: fixed; left: 0; right: 0; top: 0; height: env(safe-area-inset-top, 0px); background: #060a10; z-index: 150; }
+.ins-steps { margin: 4px 0 16px; padding-left: 18px; font-size: 13px; color: var(--text); line-height: 1.9; }
+.ins-steps b { color: var(--yellow); }
 .hero-kicker { align-self: flex-start; font-family: 'Oswald', sans-serif; font-size: 11px; letter-spacing: .2em; color: #0a0e14; background: var(--yellow); padding: 2px 8px; border-radius: 4px; }
 .hero-title { margin-top: 6px; font-size: 26px; font-weight: 600; letter-spacing: -.02em; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
 .hero-title b { font-family: 'Oswald', sans-serif; color: var(--yellow); letter-spacing: .02em; }
@@ -546,6 +567,10 @@ body:not(.on-game) { padding-bottom: calc(66px + var(--safe)); }
 
 <!-- 경기 화면: 헤더(사진) → 지금 재생 줄(따라 붙음) → 탭 내용 → 아래 고정 효과음 줄 + 탭 -->
 <header class="hero">
+  <div class="hero-acts" id="heroActs">
+    <button class="ha-btn" id="fsBtn" onclick="goFullscreen()" hidden><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>전체화면</button>
+    <button class="ha-btn ha-main" id="installBtn" onclick="installApp()"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>홈 화면에 추가</button>
+  </div>
   <div class="hero-in">
     <div class="hero-kicker">PLAY BALL</div>
     <h1 class="hero-title">야구 수업 <b>DJ</b> 턴테이블</h1>
@@ -1211,6 +1236,7 @@ function pickSong(v){ LU.teams[LU.active].slots[spSlot].song=v; saveLU(); render
 let askFn=null;
 function askSheet(title,msg,okText,fn){
   askFn=fn; document.getElementById('askTitle').textContent=title; document.getElementById('askMsg').textContent=msg;
+  document.querySelector('#askModal .ask-no').hidden=false; document.getElementById('askOk').style.background=''; document.getElementById('askOk').style.color='';
   document.getElementById('askOk').textContent=okText; document.getElementById('askModal').classList.add('open');
 }
 function closeAsk(ok){ document.getElementById('askModal').classList.remove('open'); const f=askFn; askFn=null; if(ok&&f) f(); }
@@ -1242,6 +1268,33 @@ function renderEdit(){
     </div>`;
 }
 
+// ── 홈 화면에 추가 · 전체화면 ──
+// 홈 화면 아이콘으로 열면 주소창 없이 전체화면(앱 정보 display: fullscreen). 브라우저 안에서는 안드로이드만 전체화면 버튼
+const isStandalone=()=>matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; });
+window.addEventListener('appinstalled',()=>{ installEvt=null; refreshAppBtns(); });
+function refreshAppBtns(){
+  const sa=isStandalone();
+  document.documentElement.classList.toggle('standalone',sa);
+  document.getElementById('installBtn').hidden=sa;
+  document.getElementById('fsBtn').hidden=sa||isIOS||!document.documentElement.requestFullscreen||!!document.fullscreenElement;
+}
+async function installApp(){
+  if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch{} installEvt=null; refreshAppBtns(); return; }
+  const steps=isIOS
+    ?'<ol class="ins-steps"><li>사파리 아래쪽 <b>공유 버튼</b>(네모에 위 화살표)을 누릅니다</li><li>목록을 올려 <b>홈 화면에 추가</b>를 누릅니다</li><li>오른쪽 위 <b>추가</b>를 누르면 바탕화면에 아이콘이 생깁니다</li></ol>'
+    :'<ol class="ins-steps"><li>브라우저 오른쪽 위 <b>⋮ 메뉴</b>를 누릅니다</li><li><b>홈 화면에 추가</b> 또는 <b>앱 설치</b>를 누릅니다</li><li>바탕화면에 생긴 아이콘으로 열면 주소창 없이 전체화면으로 열립니다</li></ol>';
+  askSheet('바탕화면에 바로가기 만들기','',isIOS?'알겠어요':'확인',()=>{});
+  document.getElementById('askMsg').innerHTML=steps+(isIOS?'카카오톡 안에서 열었다면 먼저 오른쪽 아래 메뉴에서 「사파리로 열기」를 해 주세요.':'카카오톡 안에서 열었다면 먼저 「다른 브라우저로 열기」(크롬)를 해 주세요.');
+  document.querySelector('#askModal .ask-no').hidden=true;
+  document.getElementById('askOk').style.background='var(--yellow)'; document.getElementById('askOk').style.color='#0a0e14';
+}
+function goFullscreen(){ document.documentElement.requestFullscreen?.({navigationUI:'hide'}).then(refreshAppBtns,()=>{}); }
+document.addEventListener('fullscreenchange',refreshAppBtns);
+if('serviceWorker' in navigator) navigator.serviceWorker.register(new URL('sw.js',location.href).href,{scope:new URL('./',location.href).pathname}).catch(()=>{});
+
 // 수업 중 폰 화면이 꺼지지 않게 (지원 안 하는 브라우저는 그냥 넘어감)
 let wakeLock=null;
 async function keepAwake(){
@@ -1250,7 +1303,7 @@ async function keepAwake(){
 }
 ['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,keepAwake,{passive:true}));
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') keepAwake(); });
-renderPads(); renderBatters(); renderMatchup(); updateSub(); updateBadges();
+renderPads(); renderBatters(); renderMatchup(); updateSub(); updateBadges(); refreshAppBtns();
 (()=>{ let t='game'; try{ t=sessionStorage.getItem('bb_tab')||'game'; }catch{} document.body.classList.add('on-game'); if(t!=='game') showTab(t); })();
 </script>
 </body>
