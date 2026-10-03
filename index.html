@@ -561,19 +561,19 @@ body:not(.on-game) { padding-bottom: calc(66px + var(--safe)); }
     <details>
       <summary>사용 방법</summary>
       <div class="hint-body">
-      <strong>동작 방식</strong><br>
-      구단 응원송은 버튼 눌렀을 때만 재생됩니다.<br>
-      응원송 재생 중 다른 음원 누르면 <strong>현재 위치 자동 저장</strong>,<br>
-      같은 구단 버튼 다시 누르면 저장된 위치부터 이어서 재생됩니다.<br>
-      위쪽 막대를 누르거나 끌면 그 위치로 가고, 양옆 버튼으로 건너뜁니다.<br>
-      구단 응원가는 <strong>⏮ 이전 곡 / 다음 곡 ⏭</strong>, 타자 등장곡은 10초, 나머지는 30초씩.<br><br>
-      <strong>타자 라인업</strong><br>
-      <strong>구단 선택</strong>에서 구단을 고르면 지금 팀(청팀·백팀)이 그 구단 주전 9명의 이름과 등장곡으로 바뀝니다. 10개 구단 90명이 들어 있습니다.<br>
-      「라인업 편집」에서 팀마다 9명의 이름과 등장곡을 정합니다. 등장곡은 기본 9곡, 10개 구단 선수 등장곡, 구단 응원가 중 한 곡을 고를 수 있습니다.<br>
-      <strong>응원가 / 등장곡</strong> 탭으로 구단 선수 곡을 그 선수 응원가로 틀지, 등장곡으로 틀지 고릅니다. 구단 응원가는 구단마다 약 20분(라인업송+팀 응원가)입니다. 「곡 길이」는 응원가·등장곡 모두에 똑같이 적용됩니다(「끝까지」면 곡 전체).<br>
-      <strong>다음 타자</strong>를 누르면 「3번 타자, 김민준!」 하고 불러 준 뒤 등장곡이 나오고, 정한 길이가 지나면 저절로 줄어듭니다.<br>
-      「공수교대」를 누르면 상대 팀 라인업으로 바뀝니다. 각 팀은 자기 타순을 따로 기억합니다.<br>
-      이름은 이 기기에만 저장됩니다. 엣지 브라우저로 열면 더 자연스러운 목소리(선히)가 나옵니다.
+      <strong>경기 탭</strong><br>
+      <strong>공격</strong>에서 지금 공격하는 팀을 고릅니다. 처음엔 청팀·백팀이고, <strong>구단 고르기</strong>를 누르면 그 팀이 KBO 구단 주전 9명(이름·곡)으로 바뀝니다.<br>
+      <strong>응원가 / 등장곡</strong>으로 구단 선수 곡을 그 선수 응원가로 틀지 등장곡으로 틀지 고릅니다.<br>
+      <strong>다음 타자</strong>를 누르면 「3번 타자, 김민준!」 하고 불러 준 뒤 곡이 나오고, 정한 길이가 지나면 저절로 줄어듭니다. <strong>지금 타자</strong>를 누르면 그 타자 곡을 처음부터 다시 틉니다. 9명 버튼을 눌러 아무 타자나 바로 불러도 됩니다.<br>
+      화면 아래 <strong>홈런·안타·삼진·아웃·공수교대</strong>는 늘 떠 있습니다. 공수교대를 누르면 상대 팀으로 바뀌고, 팀마다 자기 타순을 따로 기억합니다.<br><br>
+      <strong>재생 줄 (맨 위)</strong><br>
+      지금 나오는 곡과 시간이 보입니다. <strong>정지</strong>는 바로 끄고, <strong>페이드</strong>는 소리를 천천히 줄이며 끕니다.<br>
+      막대를 누르거나 끌면 그 위치로 가고, 양옆 버튼으로 건너뜁니다. 타자 곡은 10초, 구단 응원가는 곡 단위(이전 곡/다음 곡), 나머지는 30초씩.<br><br>
+      <strong>구단 응원가 탭</strong><br>
+      구단마다 라인업송과 팀 응원가가 약 20분 들어 있습니다. 다른 곡을 틀었다가 같은 구단을 다시 누르면 멈췄던 곳부터 이어서 나오고, 「이어 듣기 위치 모두 처음으로」로 처음부터 틀 수 있습니다.<br><br>
+      <strong>라인업·설정 탭</strong><br>
+      전체 음량, 팀 이름, 9명의 이름과 곡(기본 9곡·구단 선수 90명·구단 응원가 중에서)을 바꿉니다. 이름 불러 주기, 곡 길이(10초~끝까지), 목소리도 여기서 정합니다.<br><br>
+      이름은 이 기기에만 저장됩니다. 앱을 켜 둔 동안은 화면이 꺼지지 않습니다. 엣지 브라우저로 열면 더 자연스러운 목소리(선히)가 나옵니다.
     </div>
   </details>
   </section>
@@ -1127,6 +1127,14 @@ function renderEdit(){
     </div>`;
 }
 
+// 수업 중 폰 화면이 꺼지지 않게 (지원 안 하는 브라우저는 그냥 넘어감)
+let wakeLock=null;
+async function keepAwake(){
+  if(!('wakeLock' in navigator)||document.visibilityState!=='visible'||(wakeLock&&!wakeLock.released))return;
+  try{ wakeLock=await navigator.wakeLock.request('screen'); }catch{}
+}
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,keepAwake,{passive:true}));
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') keepAwake(); });
 renderPads(); renderBatters(); renderMatchup(); updateSub(); updateBadges();
 (()=>{ let t='game'; try{ t=sessionStorage.getItem('bb_tab')||'game'; }catch{} document.body.classList.add('on-game'); if(t!=='game') showTab(t); })();
 </script>
