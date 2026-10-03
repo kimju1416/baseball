@@ -384,6 +384,59 @@ input[type=range].vol-slider::-webkit-slider-thumb {
 @media (max-width: 360px) { .cm-grid { grid-template-columns: repeat(4, 1fr); } }
 .pad.team .pad-icon img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: block; }
 
+/* ── 라인업 편집: 곡 버튼 · 곡 고르기 창 · 확인 창 ── */
+.le-row { grid-template-columns: 24px minmax(0,.9fr) minmax(0,1.3fr); }
+.le-song {
+  display: flex; align-items: center; gap: 8px; min-width: 0; height: 44px; padding: 0 8px; text-align: left;
+  background: var(--bg); color: var(--text); border: 1px solid var(--border2); border-radius: 10px; cursor: pointer; touch-action: manipulation;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.le-song:active { transform: scale(.98); }
+.le-song img, .le-song .cs-dot { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.le-song .cs-dot { display: inline-flex; align-items: center; justify-content: center; background: var(--surface2); color: var(--muted); font-size: 13px; }
+.le-song-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.le-song-t b { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.le-song-t small { font-size: 10px; color: var(--muted); }
+.le-song-ch { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.seg-clip { flex: 1; }
+.seg-clip button { height: 32px; font-size: 12px; padding: 0 2px; }
+.sp-sheet { display: flex; flex-direction: column; height: 82vh; overflow: hidden; }
+.sp-groups { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; flex-shrink: 0; }
+.sp-groups::-webkit-scrollbar { display: none; }
+.sp-g {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0; height: 38px; padding: 0 12px 0 5px;
+  border: 1px solid var(--border2); border-radius: 19px; background: var(--surface); color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; touch-action: manipulation;
+}
+.sp-g img, .sp-g .cs-dot { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.sp-g .cs-dot { display: inline-flex; align-items: center; justify-content: center; background: var(--surface2); color: var(--muted); }
+.sp-g.on { border-color: var(--yellow); background: rgba(251,191,36,.12); color: var(--yellow); }
+.sp-kind { flex: 0 0 auto; margin-bottom: 8px; }
+.sp-kind[hidden] { display: none; }
+.sp-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; }
+.sp-item {
+  display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; text-align: left;
+  border: 1px solid var(--border); border-radius: 11px; background: var(--surface); color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; cursor: pointer; touch-action: manipulation; flex-shrink: 0;
+}
+.sp-item:active { transform: scale(.98); }
+.sp-n { font-family: 'Oswald', sans-serif; font-size: 13px; color: var(--muted); min-width: 34px; }
+.sp-t { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-item.on { border-color: var(--green); background: rgba(34,197,94,.1); }
+.sp-ck { color: var(--green); font-weight: 700; }
+.ask-wrap { align-items: center; padding: 20px; }
+.ask-box {
+  width: 100%; max-width: 340px; padding: 22px 20px 16px; border-radius: 18px; background: #0f1620; border: 1px solid var(--border2);
+  transform: scale(.94); opacity: 0; transition: transform .2s, opacity .2s;
+}
+.ask-wrap.open .ask-box { transform: none; opacity: 1; }
+.ask-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.ask-msg { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+.ask-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ask-btns button { height: 44px; border-radius: 11px; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); }
+.ask-no { background: var(--surface2); color: var(--text); }
+.ask-ok { background: #b91c1c; color: #fff; border-color: #b91c1c !important; }
+
 /* ── 안내 ── */
 details { margin-top: 12px; }
 details summary {
@@ -587,6 +640,24 @@ body:not(.on-game) { padding-bottom: calc(66px + var(--safe)); }
     <button class="tb" data-tab="cheer" onclick="showTab('cheer')"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>구단 응원가</button>
     <button class="tb" data-tab="set" onclick="showTab('set')"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>라인업·설정</button>
   </nav>
+</div>
+
+<div class="cm-wrap" id="songModal" onclick="if(event.target===this)closeSongPicker()" role="dialog" aria-modal="true" aria-labelledby="spTitle">
+  <div class="cm-sheet sp-sheet">
+    <div class="cm-grab"></div>
+    <div class="cm-hd"><span id="spTitle"></span><button class="cm-x" onclick="closeSongPicker()" aria-label="닫기">✕</button></div>
+    <div class="sp-groups" id="spGroups"></div>
+    <div class="seg sp-kind" id="spKind"></div>
+    <div class="sp-list" id="spList"></div>
+  </div>
+</div>
+
+<div class="cm-wrap ask-wrap" id="askModal" onclick="if(event.target===this)closeAsk(false)" role="alertdialog" aria-modal="true" aria-labelledby="askTitle">
+  <div class="ask-box">
+    <div class="ask-title" id="askTitle"></div>
+    <div class="ask-msg" id="askMsg"></div>
+    <div class="ask-btns"><button class="ask-no" onclick="closeAsk(false)">취소</button><button class="ask-ok" id="askOk" onclick="closeAsk(true)"></button></div>
+  </div>
 </div>
 
 <div class="cm-wrap" id="clubModal" onclick="if(event.target===this)closeClubModal()" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
@@ -1096,10 +1167,54 @@ function testVoice(){
   speak((n+1)+'번 타자, '+nm+'!',()=>{});
 }
 function clearTeam(){
-  if(!confirm('이 팀의 이름과 등장곡을 모두 지울까요?'))return;
+  askSheet('이 팀을 비울까요?','9명의 이름과 곡이 모두 지워지고 기본 등장곡 1~9로 돌아갑니다.','비우기',doClearTeam);
+}
+function doClearTeam(){
   const d=luDefault().teams[LU.active]; d.name=LU.teams[LU.active].name; LU.teams[LU.active]=d;
   saveLU(); renderBatters(); renderEdit();
 }
+// ── 곡 고르기 창: 위에서 묶음(기본 / 10개 구단) 고르고, 아래 목록에서 한 곡 ──
+function songChip(id){
+  const inf=songInfo(id), k=String(id).startsWith('w:')?id.split(':')[1]:(String(id).indexOf(':')>0?id.split(':')[0]:null);
+  const img=k&&CLUB_LINEUP[k]?`<img src="${MASCOT(k)}" alt="">`:`<span class="cs-dot">♪</span>`;
+  const sub=String(id).startsWith('w:')?'선수 곡':(k?'팀 응원가':'기본 등장곡');
+  return `${img}<span class="le-song-t"><b>${esc(inf.label)}</b><small>${sub}</small></span>`;
+}
+let spSlot=0, spGroup='basic', spKind='player';
+function openSongPicker(i){
+  spSlot=i; const id=String(LU.teams[LU.active].slots[i].song);
+  if(id.startsWith('w:')){ spGroup=id.split(':')[1]; spKind='player'; }
+  else if(id.indexOf(':')>0){ spGroup=id.split(':')[0]; spKind='team'; }
+  else{ spGroup='basic'; spKind='player'; }
+  renderSongPicker(); document.getElementById('songModal').classList.add('open');
+}
+function closeSongPicker(){ document.getElementById('songModal').classList.remove('open'); }
+function renderSongPicker(){
+  const T=LU.teams[LU.active], cur=String(T.slots[spSlot].song);
+  document.getElementById('spTitle').textContent=`${spSlot+1}번 타자 곡 고르기`;
+  const clubs=TEAMS.filter(t=>CLUB_LINEUP[t.key]);
+  document.getElementById('spGroups').innerHTML=`<button class="sp-g${spGroup==='basic'?' on':''}" onclick="spGroup='basic';renderSongPicker()"><span class="cs-dot">♪</span>기본</button>`+
+    clubs.map(t=>`<button class="sp-g${spGroup===t.key?' on':''}" style="--cc:${CLUB_COLOR[t.key]}" onclick="spGroup='${t.key}';renderSongPicker()"><img src="${MASCOT(t.key)}" alt="">${esc(clubShort(t.key))}</button>`).join('');
+  const kindEl=document.getElementById('spKind');
+  kindEl.hidden=spGroup==='basic';
+  kindEl.innerHTML=`<button class="${spKind==='player'?'on':''}" onclick="spKind='player';renderSongPicker()">선수 ${LU.mode==='walk'?'등장곡':'응원가'} 9곡</button><button class="${spKind==='team'?'on':''}" onclick="spKind='team';renderSongPicker()">팀 응원가</button>`;
+  let items=[];
+  if(spGroup==='basic') items=PLAYERS.map(p=>[p.key,'등장곡 '+p.key.slice(6),'기본']);
+  else if(spKind==='player') items=CLUB_LINEUP[spGroup].map((n,i)=>['w:'+spGroup+':'+i,n,(i+1)+'번']);
+  else items=(TEAM_SONGS[spGroup]||[]).map((x,i)=>[spGroup+':'+i,x[1],fmt(x[0])]);
+  document.getElementById('spList').innerHTML=items.map(([v,t,n])=>
+    `<button class="sp-item${v===cur?' on':''}" onclick="pickSong('${v}')"><span class="sp-n">${esc(n)}</span><span class="sp-t">${esc(t)}</span>${v===cur?'<span class="sp-ck">✓</span>':''}</button>`).join('');
+  document.getElementById('spGroups').querySelector('.on')?.scrollIntoView({block:'nearest',inline:'center'});
+}
+function pickSong(v){ LU.teams[LU.active].slots[spSlot].song=v; saveLU(); renderBatters(); renderEdit(); closeSongPicker(); }
+// ── 앱 안 확인 창 (윈도우식 confirm 대신) ──
+let askFn=null;
+function askSheet(title,msg,okText,fn){
+  askFn=fn; document.getElementById('askTitle').textContent=title; document.getElementById('askMsg').textContent=msg;
+  document.getElementById('askOk').textContent=okText; document.getElementById('askModal').classList.add('open');
+}
+function closeAsk(ok){ document.getElementById('askModal').classList.remove('open'); const f=askFn; askFn=null; if(ok&&f) f(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSongPicker(); closeAsk(false); } });
 function renderEdit(){
   const T=LU.teams[LU.active], el=document.getElementById('lineupEdit');
   document.querySelectorAll('#setSeg button').forEach((b,i)=>{ b.textContent=LU.teams[i].name||(i?'백팀':'청팀'); b.classList.toggle('on',i===LU.active); });
@@ -1110,11 +1225,11 @@ function renderEdit(){
     <div class="le-title">이름을 비워 두면 「N번 타자」라고 부릅니다</div>
     ${T.slots.map((s,i)=>`<div class="le-row"><span class="no">${i+1}</span>
       <input type="text" maxlength="10" placeholder="${i+1}번 타자 이름" value="${esc(s.name)}" oninput="LU.teams[LU.active].slots[${i}].name=this.value; saveLU(); renderBatters()">
-      <select onchange="LU.teams[LU.active].slots[${i}].song=this.value; saveLU(); renderBatters()">${songOptions(s.song)}</select></div>`).join('')}
+      <button class="le-song" onclick="openSongPicker(${i})">${songChip(s.song)}<span class="le-song-ch">▾</span></button></div>`).join('')}
     <div class="le-set">
       <label class="le-line"><span>이름 불러 주기</span><input type="checkbox" ${LU.call?'checked':''} onchange="LU.call=this.checked; saveLU()"></label>
-      <label class="le-line"><span>곡 길이</span><select onchange="LU.clip=+this.value; saveLU()">
-        ${[[10,'10초'],[15,'15초'],[20,'20초'],[30,'30초'],[0,'끝까지']].map(([v,t])=>`<option value="${v}"${(LU.clip||0)===v?' selected':''}>${t}</option>`).join('')}</select></label>
+      <div class="le-line"><span>곡 길이</span><div class="seg seg-clip">
+        ${[[10,'10초'],[15,'15초'],[20,'20초'],[30,'30초'],[0,'끝까지']].map(([v,t])=>`<button class="${(LU.clip||0)===v?'on':''}" onclick="LU.clip=${v}; saveLU(); renderEdit()">${t}</button>`).join('')}</div></div>
       <label class="le-line"><span>목소리</span><select onchange="LU.voice=this.value; saveLU()">
         <option value="">자동 (${esc(best?vname(best):'한국어 목소리 없음')})</option>
         ${vs.map(v=>`<option value="${esc(v.name)}"${v.name===LU.voice?' selected':''}>${esc(vname(v))}</option>`).join('')}</select></label>
